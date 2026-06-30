@@ -62,7 +62,7 @@ To move your forest to another device or keep a backup, use **Settings → Expor
 
 MIT — use it, fork it, build on it.
 
-## 🎬 Demo
+## 📸 Screenshot
 
 <img width="1920" height="909" alt="Image" src="https://github.com/user-attachments/assets/93ca7480-87da-4790-830c-2c9d9777ef8f" />
 
