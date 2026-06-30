@@ -64,5 +64,6 @@ MIT — use it, fork it, build on it.
 
 ## 🎬 Demo
 
+<img width="1920" height="909" alt="Image" src="https://github.com/user-attachments/assets/93ca7480-87da-4790-830c-2c9d9777ef8f" />
 
 
