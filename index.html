@@ -1,0 +1,2166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cozy Forest 🌲</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── DESIGN TOKENS ── */
+:root {
+  --forest-green: #4a7c59;
+  --forest-dark: #2d5a3d;
+  --sage: #87a878;
+  --sage-light: #b8cfaa;
+  --cream: #fdf6ec;
+  --cream-dark: #f5ead5;
+  --sky-blue: #7ab8d4;
+  --sky-light: #c8e8f5;
+  --warm-brown: #8b6914;
+  --warm-brown-light: #c9a855;
+  --moss: #5a6e4a;
+  --soft-yellow: #f0d060;
+  --petal-pink: #f0a0b0;
+  --lavender: #c0a8e0;
+  --terracotta: #d4785a;
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --shadow-sm: 0 2px 8px rgba(74,124,89,.10);
+  --shadow: 0 4px 20px rgba(74,124,89,.14);
+  --shadow-lg: 0 8px 40px rgba(74,124,89,.18);
+  --glass: rgba(253,246,236,.72);
+  --glass-dark: rgba(45,90,61,.45);
+  --border-light: rgba(135,168,120,.25);
+  --text-primary: #2d3a28;
+  --text-secondary: #5a6e4a;
+  --text-muted: #8a9a7a;
+  --font-display: 'Nunito', sans-serif;
+  --font-body: 'Nunito Sans', sans-serif;
+  --nav-h: 68px;
+  --sidebar-w: 220px;
+}
+[data-theme="dark"] {
+  --cream: #1a2218;
+  --cream-dark: #141d12;
+  --glass: rgba(26,34,24,.82);
+  --glass-dark: rgba(45,90,61,.65);
+  --border-light: rgba(135,168,120,.18);
+  --text-primary: #e8f0e0;
+  --text-secondary: #a8c098;
+  --text-muted: #6a8a5a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--text-primary);
+  transition: background .4s, color .4s;
+  -webkit-font-smoothing: antialiased;
+}
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+input, textarea, select { font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+
+/* ── LAYOUT ── */
+#app { display: flex; height: 100vh; overflow: hidden; }
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--glass); backdrop-filter: blur(16px);
+  border-right: 1px solid var(--border-light);
+  display: flex; flex-direction: column;
+  padding: 24px 12px 16px;
+  gap: 4px; z-index: 10;
+}
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 10px 20px;
+  font-family: var(--font-display);
+  font-size: 20px; font-weight: 800;
+  color: var(--forest-green);
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 8px;
+}
+.sidebar-logo .logo-icon { font-size: 28px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer; transition: all .2s;
+  font-family: var(--font-display);
+}
+.nav-item:hover { background: rgba(135,168,120,.2); color: var(--forest-green); }
+.nav-item.active { background: rgba(74,124,89,.15); color: var(--forest-green); }
+.nav-item .nav-icon { font-size: 20px; width: 24px; text-align: center; }
+.sidebar-bottom {
+  margin-top: auto; padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+.user-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  background: rgba(135,168,120,.12);
+}
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--sage), var(--forest-green));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 13px; font-weight: 700; color: var(--text-primary); font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-level { font-size: 11px; color: var(--text-muted); }
+
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.page { display: none; flex: 1; overflow-y: auto; padding: 28px; }
+.page.active { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── MOBILE NAV ── */
+.mobile-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--glass); backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-light);
+  padding: 8px 0 env(safe-area-inset-bottom);
+  z-index: 100;
+}
+.mobile-nav-inner { display: flex; justify-content: space-around; }
+.mobile-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; transition: all .2s; font-family: var(--font-display);
+}
+.mobile-nav-item .m-icon { font-size: 22px; }
+.mobile-nav-item.active { color: var(--forest-green); }
+
+/* ── GLASS CARD ── */
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── XP BAR ── */
+.xp-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.xp-bar-track {
+  flex: 1; height: 10px; background: rgba(135,168,120,.25);
+  border-radius: 99px; overflow: hidden;
+}
+.xp-bar-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--sage), var(--forest-green));
+  transition: width .8s cubic-bezier(.34,1.56,.64,1);
+}
+.xp-label { font-size: 11px; font-weight: 700; color: var(--text-muted); font-family: var(--font-display); }
+
+/* ── HOME PAGE ── */
+.home-hero {
+  position: relative; border-radius: var(--radius-lg); overflow: hidden;
+  min-height: 340px; flex-shrink: 0;
+}
+.forest-scene {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, #c8e8f5 0%, #a8d8f0 30%, #87c8e8 55%, #b8d8a0 55%, #8ab870 75%, #6a9850 100%);
+  overflow: hidden;
+}
+[data-theme="dark"] .forest-scene {
+  background: linear-gradient(180deg, #0a0f1e 0%, #1a2540 35%, #1e3050 55%, #1a3025 55%, #142218 75%, #0e1a10 100%);
+}
+.forest-overlay {
+  position: relative; z-index: 5;
+  padding: 24px 28px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.greeting-text {
+  font-family: var(--font-display);
+  font-size: 28px; font-weight: 800;
+  color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+.date-text {
+  font-size: 14px; font-weight: 600;
+  color: rgba(255,255,255,.85); font-family: var(--font-display);
+}
+.hero-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.hero-stat {
+  background: rgba(255,255,255,.22); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: var(--radius-sm); padding: 8px 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.hero-stat .stat-icon { font-size: 18px; }
+.hero-stat .stat-label { font-size: 11px; color: rgba(255,255,255,.8); font-family: var(--font-display); font-weight: 600; }
+.hero-stat .stat-value { font-size: 16px; font-weight: 800; color: #fff; font-family: var(--font-display); }
+
+/* ── ANIMATED SKY ELEMENTS ── */
+.cloud {
+  position: absolute; background: rgba(255,255,255,.85);
+  border-radius: 50px; pointer-events: none;
+}
+.cloud::before, .cloud::after {
+  content: ''; position: absolute; background: inherit; border-radius: 50px;
+}
+@keyframes cloud-drift { 0%{transform:translateX(0)} 100%{transform:translateX(120px)} }
+@keyframes cloud-drift2 { 0%{transform:translateX(0)} 100%{transform:translateX(-80px)} }
+@keyframes leaf-fall {
+  0%{transform:translateY(-20px) rotate(0deg) translateX(0); opacity:1}
+  100%{transform:translateY(380px) rotate(720deg) translateX(60px); opacity:0}
+}
+@keyframes firefly {
+  0%,100%{opacity:0; transform:scale(.6)}
+  50%{opacity:1; transform:scale(1)}
+}
+@keyframes bird-fly {
+  0%{transform:translateX(-60px) translateY(0)}
+  25%{transform:translateX(80px) translateY(-20px)}
+  50%{transform:translateX(160px) translateY(0)}
+  75%{transform:translateX(240px) translateY(-15px)}
+  100%{transform:translateX(400px) translateY(0)}
+}
+@keyframes fox-walk {
+  0%{transform:translateX(-40px)}
+  100%{transform:translateX(calc(100% + 80px))}
+}
+@keyframes tree-sway {
+  0%,100%{transform-origin:bottom center; transform:rotate(-1deg)}
+  50%{transform-origin:bottom center; transform:rotate(1deg)}
+}
+@keyframes flower-bloom {
+  0%{transform:scale(0) rotate(-20deg); opacity:0}
+  60%{transform:scale(1.2) rotate(5deg)}
+  100%{transform:scale(1) rotate(0deg); opacity:1}
+}
+@keyframes sparkle {
+  0%{transform:scale(0) rotate(0deg); opacity:1}
+  50%{transform:scale(1.5) rotate(180deg); opacity:1}
+  100%{transform:scale(0) rotate(360deg); opacity:0}
+}
+@keyframes xp-pulse {
+  0%,100%{box-shadow: 0 0 0 0 rgba(74,124,89,.4)}
+  50%{box-shadow: 0 0 0 8px rgba(74,124,89,0)}
+}
+@keyframes float-up {
+  0%{transform:translateY(0); opacity:1}
+  100%{transform:translateY(-60px); opacity:0}
+}
+@keyframes rain {
+  0%{transform:translateY(-10px); opacity:0}
+  10%{opacity:.6}
+  100%{transform:translateY(400px); opacity:0}
+}
+@keyframes wiggle {
+  0%,100%{transform:rotate(-8deg)}
+  50%{transform:rotate(8deg)}
+}
+@keyframes pulse-glow {
+  0%,100%{filter:drop-shadow(0 0 4px rgba(240,208,96,.6))}
+  50%{filter:drop-shadow(0 0 14px rgba(240,208,96,.9))}
+}
+@keyframes bounce-in {
+  0%{transform:scale(0.3); opacity:0}
+  60%{transform:scale(1.1)}
+  100%{transform:scale(1); opacity:1}
+}
+
+.leaf { position: absolute; pointer-events: none; font-size: 14px; animation: leaf-fall linear infinite; }
+.firefly { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #f0d060; pointer-events: none; animation: firefly ease-in-out infinite; }
+.bird { position: absolute; pointer-events: none; font-size: 16px; animation: bird-fly linear forwards; }
+.tree-animated { animation: tree-sway ease-in-out infinite; display: inline-block; }
+.fox { position: absolute; bottom: 80px; pointer-events: none; font-size: 28px; animation: fox-walk 12s linear forwards; }
+.raindrop { position: absolute; width: 2px; background: rgba(135,180,220,.6); border-radius: 2px; pointer-events: none; animation: rain linear infinite; }
+
+/* ── TASKS ── */
+.tasks-grid { display: flex; flex-direction: column; gap: 10px; }
+.task-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; border-radius: var(--radius);
+  background: var(--glass); border: 1px solid var(--border-light);
+  transition: all .2s; cursor: pointer;
+}
+.task-card:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.task-card.done { opacity: .55; }
+.task-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--sage);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .2s; font-size: 13px;
+}
+.task-check.checked { background: var(--forest-green); border-color: var(--forest-green); color: #fff; }
+.task-content { flex: 1; min-width: 0; }
+.task-title { font-size: 14px; font-weight: 600; font-family: var(--font-display); color: var(--text-primary); }
+.task-card.done .task-title { text-decoration: line-through; color: var(--text-muted); }
+.task-meta { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.task-tag {
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px;
+  font-family: var(--font-display);
+}
+.priority-high { background: rgba(212,120,90,.15); color: var(--terracotta); }
+.priority-med { background: rgba(240,208,96,.2); color: var(--warm-brown); }
+.priority-low { background: rgba(135,168,120,.2); color: var(--forest-green); }
+.category-tag { background: rgba(192,168,224,.2); color: var(--lavender); }
+.task-actions { display: flex; gap: 4px; }
+.icon-btn {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; transition: all .15s; color: var(--text-muted);
+}
+.icon-btn:hover { background: rgba(135,168,120,.2); color: var(--forest-green); }
+.add-task-form {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 18px; border-radius: var(--radius);
+  background: var(--glass); border: 1px solid var(--border-light);
+}
+.field-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.field-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 120px; }
+.field-label { font-size: 12px; font-weight: 700; color: var(--text-secondary); font-family: var(--font-display); }
+.cozy-input, .cozy-select {
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  background: rgba(255,255,255,.5); color: var(--text-primary);
+  font-size: 13px; font-family: var(--font-display); font-weight: 500;
+  outline: none; transition: border-color .2s, box-shadow .2s;
+  width: 100%;
+}
+[data-theme="dark"] .cozy-input, [data-theme="dark"] .cozy-select { background: rgba(0,0,0,.25); }
+.cozy-input:focus, .cozy-select:focus {
+  border-color: var(--sage); box-shadow: 0 0 0 3px rgba(135,168,120,.2);
+}
+.btn-primary {
+  padding: 10px 20px; border-radius: var(--radius-sm);
+  background: var(--forest-green); color: #fff;
+  font-size: 14px; font-weight: 700; font-family: var(--font-display);
+  transition: all .2s; display: flex; align-items: center; gap: 6px;
+}
+.btn-primary:hover { background: var(--forest-dark); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.btn-secondary {
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  background: rgba(135,168,120,.15); color: var(--forest-green);
+  font-size: 14px; font-weight: 700; font-family: var(--font-display);
+  transition: all .2s; border: 1px solid var(--border-light);
+}
+.btn-secondary:hover { background: rgba(135,168,120,.25); }
+
+/* ── SECTION HEADINGS ── */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 2px;
+}
+.section-title {
+  font-family: var(--font-display); font-size: 18px; font-weight: 800;
+  color: var(--text-primary); display: flex; align-items: center; gap: 8px;
+}
+.section-title .icon { font-size: 22px; }
+
+/* ── HABITS ── */
+.habits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.habit-card {
+  padding: 16px; border-radius: var(--radius);
+  background: var(--glass); border: 1px solid var(--border-light);
+  display: flex; flex-direction: column; gap: 10px;
+  cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
+}
+.habit-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.habit-card.done-today { border-color: var(--sage); background: rgba(135,168,120,.12); }
+.habit-icon { font-size: 32px; text-align: center; }
+.habit-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-primary); text-align: center; }
+.habit-streak { font-size: 12px; font-weight: 600; color: var(--warm-brown-light); font-family: var(--font-display); text-align: center; }
+.habit-dots { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+.habit-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border-light); border: 1px solid var(--border-light);
+}
+.habit-dot.filled { background: var(--forest-green); border-color: var(--forest-green); }
+.habit-check-overlay {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 18px; opacity: 0; transition: opacity .2s;
+}
+.habit-card.done-today .habit-check-overlay { opacity: 1; }
+
+/* ── POMODORO ── */
+.pomodoro-center {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 24px; padding: 20px 0;
+}
+.timer-ring-wrap { position: relative; width: 220px; height: 220px; }
+.timer-ring-svg { transform: rotate(-90deg); }
+.timer-bg { fill: none; stroke: rgba(135,168,120,.2); stroke-width: 8; }
+.timer-progress { fill: none; stroke: var(--forest-green); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .5s; }
+.timer-display {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.timer-time {
+  font-family: var(--font-display); font-size: 48px; font-weight: 800;
+  color: var(--text-primary); line-height: 1;
+}
+.timer-mode { font-size: 13px; font-weight: 700; color: var(--text-muted); font-family: var(--font-display); margin-top: 4px; }
+.timer-controls { display: flex; gap: 12px; align-items: center; }
+.timer-btn {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--forest-green); color: #fff;
+  font-size: 22px; display: flex; align-items: center; justify-content: center;
+  transition: all .2s; box-shadow: var(--shadow-sm);
+}
+.timer-btn:hover { background: var(--forest-dark); transform: scale(1.05); }
+.timer-btn.secondary { background: rgba(135,168,120,.2); color: var(--forest-green); box-shadow: none; }
+.session-dots { display: flex; gap: 8px; }
+.session-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid var(--sage);
+}
+.session-dot.done { background: var(--forest-green); border-color: var(--forest-green); }
+.pomodoro-ambient { font-size: 13px; color: var(--text-muted); font-family: var(--font-display); font-weight: 500; text-align: center; }
+
+/* ── STATS ROW ── */
+.stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.stat-tile {
+  padding: 16px; border-radius: var(--radius);
+  background: var(--glass); border: 1px solid var(--border-light);
+  text-align: center; display: flex; flex-direction: column; gap: 4px; align-items: center;
+}
+.stat-tile .s-icon { font-size: 28px; }
+.stat-tile .s-num {
+  font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--text-primary);
+}
+.stat-tile .s-label { font-size: 11px; font-weight: 600; color: var(--text-muted); font-family: var(--font-display); }
+
+/* ── FOREST PAGE ── */
+.forest-view {
+  position: relative; border-radius: var(--radius-lg); overflow: hidden;
+  background: linear-gradient(180deg, #c8e8f5 0%, #a8d8f0 35%, #8bc870 55%, #5a9848 100%);
+  min-height: 420px; cursor: crosshair;
+}
+[data-theme="dark"] .forest-view {
+  background: linear-gradient(180deg, #0a0f1e 0%, #1a2540 40%, #142218 60%, #0e1a10 100%);
+}
+.level-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.level-pill {
+  padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 700;
+  font-family: var(--font-display); transition: all .2s;
+  border: 1.5px solid var(--border-light); background: var(--glass);
+  color: var(--text-muted);
+}
+.level-pill.unlocked { color: var(--forest-green); border-color: var(--sage); background: rgba(135,168,120,.15); }
+.level-pill.current { background: var(--forest-green); color: #fff; border-color: var(--forest-green); animation: xp-pulse 2s infinite; }
+
+/* ── JOURNAL ── */
+.mood-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.mood-btn {
+  font-size: 28px; width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; border: 2px solid transparent;
+}
+.mood-btn:hover { transform: scale(1.15); }
+.mood-btn.selected { border-color: var(--forest-green); background: rgba(135,168,120,.15); transform: scale(1.15); }
+.journal-textarea {
+  width: 100%; min-height: 140px; resize: vertical;
+  padding: 14px; border-radius: var(--radius);
+  border: 1px solid var(--border-light); background: rgba(255,255,255,.5);
+  [data-theme="dark"] & { background: rgba(0,0,0,.25); }
+  color: var(--text-primary); font-size: 14px; line-height: 1.7;
+  font-family: var(--font-body); outline: none; transition: border-color .2s;
+}
+[data-theme="dark"] .journal-textarea { background: rgba(0,0,0,.25); }
+.journal-textarea:focus { border-color: var(--sage); box-shadow: 0 0 0 3px rgba(135,168,120,.15); }
+.gratitude-list { display: flex; flex-direction: column; gap: 8px; }
+.gratitude-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  background: rgba(135,168,120,.08); border: 1px solid var(--border-light);
+  font-size: 14px; color: var(--text-primary); font-family: var(--font-display); font-weight: 500;
+}
+.gratitude-dot { font-size: 16px; }
+
+/* ── SHOP ── */
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+.shop-item {
+  padding: 16px 12px; border-radius: var(--radius);
+  background: var(--glass); border: 1px solid var(--border-light);
+  text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center;
+  cursor: pointer; transition: all .2s;
+}
+.shop-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--sage); }
+.shop-item.owned { border-color: var(--forest-green); background: rgba(135,168,120,.1); }
+.shop-icon { font-size: 36px; }
+.shop-name { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.shop-cost {
+  font-size: 12px; font-weight: 700; color: var(--warm-brown);
+  font-family: var(--font-display); display: flex; align-items: center; gap: 4px;
+}
+.shop-badge { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--forest-green); color: #fff; font-family: var(--font-display); font-weight: 700; }
+
+/* ── AI SPIRIT ── */
+.spirit-btn {
+  position: fixed; bottom: 24px; right: 24px; z-index: 200;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--sage), var(--forest-green));
+  box-shadow: var(--shadow-lg); font-size: 28px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .25s; cursor: pointer; border: 3px solid rgba(255,255,255,.4);
+}
+.spirit-btn:hover { transform: scale(1.1); box-shadow: 0 8px 30px rgba(74,124,89,.4); }
+.spirit-chat {
+  position: fixed; bottom: 92px; right: 24px; z-index: 200;
+  width: 320px; max-height: 480px;
+  background: var(--glass); backdrop-filter: blur(20px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  display: none; flex-direction: column; overflow: hidden;
+}
+.spirit-chat.open { display: flex; animation: bounce-in .3s ease; }
+.spirit-header {
+  padding: 14px 16px; background: linear-gradient(135deg, rgba(74,124,89,.2), rgba(135,168,120,.15));
+  border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; gap: 10px;
+}
+.spirit-avatar { font-size: 28px; }
+.spirit-title { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--text-primary); }
+.spirit-sub { font-size: 11px; color: var(--text-muted); font-family: var(--font-display); }
+.spirit-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.spirit-msg {
+  padding: 10px 14px; border-radius: var(--radius);
+  font-size: 13px; line-height: 1.6; font-family: var(--font-display); font-weight: 500;
+  max-width: 88%;
+}
+.spirit-msg.from-spirit {
+  background: rgba(135,168,120,.18); color: var(--text-primary);
+  border-bottom-left-radius: 4px; align-self: flex-start;
+}
+.spirit-msg.from-user {
+  background: var(--forest-green); color: #fff;
+  border-bottom-right-radius: 4px; align-self: flex-end;
+}
+.spirit-input-row {
+  padding: 10px 12px; border-top: 1px solid var(--border-light);
+  display: flex; gap: 8px;
+}
+.spirit-input {
+  flex: 1; padding: 8px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light); background: rgba(255,255,255,.5);
+  color: var(--text-primary); font-size: 13px; font-family: var(--font-display);
+  outline: none;
+}
+[data-theme="dark"] .spirit-input { background: rgba(0,0,0,.3); }
+.spirit-send {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  background: var(--forest-green); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  transition: all .15s;
+}
+.spirit-send:hover { background: var(--forest-dark); }
+
+/* ── TOAST ── */
+.toast-wrap { position: fixed; top: 20px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast {
+  padding: 12px 18px; border-radius: var(--radius);
+  background: var(--forest-green); color: #fff;
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  box-shadow: var(--shadow-lg); pointer-events: auto;
+  animation: bounce-in .4s ease;
+  display: flex; align-items: center; gap: 8px;
+}
+.toast.reward { background: linear-gradient(135deg, var(--warm-brown), #b8901a); }
+.toast.level { background: linear-gradient(135deg, var(--lavender), #8050c0); }
+
+/* ── SETTINGS ── */
+.settings-section { display: flex; flex-direction: column; gap: 14px; }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-radius: var(--radius);
+  background: var(--glass); border: 1px solid var(--border-light);
+}
+.settings-label { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.settings-sub { font-size: 12px; color: var(--text-muted); font-family: var(--font-display); margin-top: 2px; }
+.toggle-btn {
+  width: 48px; height: 26px; border-radius: 13px;
+  background: rgba(135,168,120,.25); position: relative; transition: background .2s; flex-shrink: 0;
+}
+.toggle-btn.on { background: var(--forest-green); }
+.toggle-knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+.toggle-btn.on .toggle-knob { transform: translateX(22px); }
+
+/* ── SPARKLE OVERLAY ── */
+.sparkle-container { position: fixed; inset: 0; pointer-events: none; z-index: 500; }
+.sparkle-particle {
+  position: absolute; pointer-events: none;
+  animation: sparkle .6s ease forwards;
+  font-size: 16px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .mobile-nav { display: block; }
+  #app { flex-direction: column; }
+  .page { padding: 16px 16px 88px; }
+  .greeting-text { font-size: 22px; }
+  .timer-time { font-size: 40px; }
+}
+
+/* ── PROGRESS BAR IN FOREST ── */
+.forest-progress-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 12px 16px;
+  background: linear-gradient(0deg, rgba(0,0,0,.35) 0%, transparent);
+}
+.forest-items-layer { position: absolute; inset: 0; pointer-events: none; }
+.forest-item { position: absolute; font-size: 28px; pointer-events: none; transition: all .4s; }
+.forest-ground { position: absolute; bottom: 0; left: 0; right: 0; height: 120px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🌲</span>
+      Cozy Forest
+    </div>
+    <div class="nav-item active" onclick="showPage('home')" id="nav-home">
+      <span class="nav-icon">🏡</span> Home
+    </div>
+    <div class="nav-item" onclick="showPage('tasks')" id="nav-tasks">
+      <span class="nav-icon">✅</span> Tasks
+    </div>
+    <div class="nav-item" onclick="showPage('habits')" id="nav-habits">
+      <span class="nav-icon">🌸</span> Habits
+    </div>
+    <div class="nav-item" onclick="showPage('pomodoro')" id="nav-pomodoro">
+      <span class="nav-icon">🍅</span> Focus
+    </div>
+    <div class="nav-item" onclick="showPage('forest')" id="nav-forest">
+      <span class="nav-icon">🗺️</span> My Forest
+    </div>
+    <div class="nav-item" onclick="showPage('journal')" id="nav-journal">
+      <span class="nav-icon">📔</span> Journal
+    </div>
+    <div class="nav-item" onclick="showPage('shop')" id="nav-shop">
+      <span class="nav-icon">🛒</span> Shop
+    </div>
+    <div class="nav-item" onclick="showPage('stats')" id="nav-stats">
+      <span class="nav-icon">📊</span> Stats
+    </div>
+    <div class="sidebar-bottom">
+      <div class="nav-item" onclick="showPage('settings')" id="nav-settings" style="margin-bottom:8px">
+        <span class="nav-icon">⚙️</span> Settings
+      </div>
+      <div class="user-card">
+        <div class="avatar">🌿</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-name">Forest Friend</div>
+          <div class="user-level" id="sidebar-level">Level 1 · 0 XP</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HOME PAGE -->
+    <section class="page active" id="page-home">
+      <!-- Hero forest scene -->
+      <div class="home-hero glass-card">
+        <div class="forest-scene" id="home-scene">
+          <!-- dynamic content injected by JS -->
+        </div>
+        <div class="forest-overlay">
+          <div class="date-text" id="hero-date"></div>
+          <div class="greeting-text" id="hero-greeting"></div>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <span class="stat-icon">⭐</span>
+              <div>
+                <div class="stat-label">Level</div>
+                <div class="stat-value" id="hero-level">1</div>
+              </div>
+            </div>
+            <div class="hero-stat">
+              <span class="stat-icon">✨</span>
+              <div>
+                <div class="stat-label">XP</div>
+                <div class="stat-value" id="hero-xp">0</div>
+              </div>
+            </div>
+            <div class="hero-stat">
+              <span class="stat-icon">🔥</span>
+              <div>
+                <div class="stat-label">Streak</div>
+                <div class="stat-value" id="hero-streak">0</div>
+              </div>
+            </div>
+            <div class="hero-stat">
+              <span class="stat-icon">🪙</span>
+              <div>
+                <div class="stat-label">Coins</div>
+                <div class="stat-value" id="hero-coins">0</div>
+              </div>
+            </div>
+          </div>
+          <!-- XP Bar -->
+          <div class="xp-bar-wrap" style="margin-top:8px">
+            <div class="xp-bar-track">
+              <div class="xp-bar-fill" id="home-xp-bar" style="width:0%"></div>
+            </div>
+            <span class="xp-label" id="home-xp-label">0 / 100 XP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's tasks preview -->
+      <div>
+        <div class="section-head">
+          <div class="section-title"><span class="icon">📋</span>Today's Tasks</div>
+          <button class="btn-secondary" onclick="showPage('tasks')" style="font-size:12px;padding:6px 12px">See all</button>
+        </div>
+        <div class="tasks-grid" id="home-tasks-list" style="margin-top:12px"></div>
+      </div>
+
+      <!-- Today's habits preview -->
+      <div>
+        <div class="section-head">
+          <div class="section-title"><span class="icon">🌸</span>Today's Habits</div>
+          <button class="btn-secondary" onclick="showPage('habits')" style="font-size:12px;padding:6px 12px">See all</button>
+        </div>
+        <div class="habits-grid" id="home-habits-list" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <!-- TASKS PAGE -->
+    <section class="page" id="page-tasks">
+      <div class="section-head">
+        <div class="section-title"><span class="icon">✅</span>Tasks</div>
+        <button class="btn-primary" onclick="toggleAddTask()">＋ Add Task</button>
+      </div>
+
+      <!-- Add task form (hidden by default) -->
+      <div class="add-task-form" id="add-task-form" style="display:none">
+        <div class="field-group">
+          <label class="field-label">Task name</label>
+          <input class="cozy-input" id="task-input" placeholder="What do you want to accomplish?" />
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Category</label>
+            <select class="cozy-select" id="task-category">
+              <option value="work">💼 Work</option>
+              <option value="study">📚 Study</option>
+              <option value="health">💪 Health</option>
+              <option value="creative">🎨 Creative</option>
+              <option value="personal">🌿 Personal</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Priority</label>
+            <select class="cozy-select" id="task-priority">
+              <option value="low">🌿 Low</option>
+              <option value="med">🌟 Medium</option>
+              <option value="high">🔥 High</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Due date</label>
+            <input type="date" class="cozy-input" id="task-due" />
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-primary" onclick="addTask()">🌱 Plant this task</button>
+          <button class="btn-secondary" onclick="toggleAddTask()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="task-filters">
+        <button class="level-pill unlocked" onclick="filterTasks('all')" data-filter="all" style="border-color:var(--forest-green);background:rgba(74,124,89,.12)">All</button>
+        <button class="level-pill" onclick="filterTasks('active')" data-filter="active">Active</button>
+        <button class="level-pill" onclick="filterTasks('done')" data-filter="done">Done</button>
+        <button class="level-pill" onclick="filterTasks('work')" data-filter="work">💼 Work</button>
+        <button class="level-pill" onclick="filterTasks('study')" data-filter="study">📚 Study</button>
+      </div>
+
+      <div class="tasks-grid" id="tasks-list"></div>
+    </section>
+
+    <!-- HABITS PAGE -->
+    <section class="page" id="page-habits">
+      <div class="section-head">
+        <div class="section-title"><span class="icon">🌸</span>Daily Habits</div>
+        <button class="btn-primary" onclick="addCustomHabit()">＋ Add Habit</button>
+      </div>
+      <div class="habits-grid" id="habits-list"></div>
+
+      <div class="section-title" style="margin-top:8px"><span class="icon">📅</span>Habit History</div>
+      <div class="glass-card" style="padding:18px;overflow-x:auto">
+        <div id="habit-calendar"></div>
+      </div>
+    </section>
+
+    <!-- POMODORO PAGE -->
+    <section class="page" id="page-pomodoro">
+      <div class="section-title"><span class="icon">🍅</span>Focus Timer</div>
+      <div class="glass-card" style="padding:24px">
+        <div class="pomodoro-center">
+          <!-- Mode toggle -->
+          <div style="display:flex;gap:8px">
+            <button class="level-pill unlocked" id="pom-work-btn" onclick="setTimerMode('work')">🍅 Focus</button>
+            <button class="level-pill" id="pom-break-btn" onclick="setTimerMode('break')">🌿 Short break</button>
+            <button class="level-pill" id="pom-long-btn" onclick="setTimerMode('long')">🌙 Long break</button>
+          </div>
+
+          <!-- Timer ring -->
+          <div class="timer-ring-wrap">
+            <svg class="timer-ring-svg" width="220" height="220" viewBox="0 0 220 220">
+              <circle class="timer-bg" cx="110" cy="110" r="96"/>
+              <circle class="timer-progress" id="timer-circle" cx="110" cy="110" r="96"
+                stroke-dasharray="603" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-display">
+              <div class="timer-time" id="timer-display">25:00</div>
+              <div class="timer-mode" id="timer-mode-label">Focus Time 🍅</div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="timer-controls">
+            <button class="timer-btn secondary" onclick="resetTimer()">↺</button>
+            <button class="timer-btn" id="timer-play-btn" onclick="toggleTimer()">▶</button>
+            <button class="timer-btn secondary" onclick="skipTimer()">⏭</button>
+          </div>
+
+          <!-- Session dots -->
+          <div class="session-dots" id="session-dots"></div>
+
+          <!-- Ambient status -->
+          <div class="pomodoro-ambient" id="pomodoro-ambient">
+            Start a session to grow your forest 🌱
+          </div>
+        </div>
+      </div>
+
+      <!-- Pomodoro stats -->
+      <div class="stats-row">
+        <div class="stat-tile"><span class="s-icon">🍅</span><span class="s-num" id="pom-total">0</span><span class="s-label">Sessions today</span></div>
+        <div class="stat-tile"><span class="s-icon">⏱️</span><span class="s-num" id="pom-mins">0</span><span class="s-label">Minutes focused</span></div>
+        <div class="stat-tile"><span class="s-icon">🌿</span><span class="s-num" id="pom-streak-stat">0</span><span class="s-label">Day streak</span></div>
+      </div>
+    </section>
+
+    <!-- FOREST PAGE -->
+    <section class="page" id="page-forest">
+      <div class="section-title"><span class="icon">🗺️</span>My Forest</div>
+
+      <!-- Forest level display -->
+      <div class="glass-card" style="padding:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text-primary)" id="forest-level-name">Meadow Sprout</div>
+            <div style="font-size:13px;color:var(--text-muted);font-family:var(--font-display);margin-top:2px" id="forest-level-desc">Your forest is just beginning...</div>
+          </div>
+          <div style="font-size:48px" id="forest-level-icon">🌱</div>
+        </div>
+        <div class="xp-bar-wrap">
+          <div class="xp-bar-track"><div class="xp-bar-fill" id="forest-xp-bar" style="width:0%"></div></div>
+          <span class="xp-label" id="forest-xp-label">Level 1</span>
+        </div>
+      </div>
+
+      <!-- Forest scene (interactive) -->
+      <div class="forest-view" id="forest-canvas" onclick="placeItem(event)">
+        <div class="forest-items-layer" id="forest-items"></div>
+        <div class="forest-progress-bar">
+          <div style="font-size:12px;color:rgba(255,255,255,.8);font-family:var(--font-display);font-weight:600;margin-bottom:6px">
+            🌟 Click to place your items
+          </div>
+        </div>
+      </div>
+
+      <!-- Level unlock path -->
+      <div>
+        <div class="section-title" style="margin-bottom:12px"><span class="icon">🔓</span>Forest Levels</div>
+        <div class="level-pills" id="level-pills-forest"></div>
+      </div>
+    </section>
+
+    <!-- JOURNAL PAGE -->
+    <section class="page" id="page-journal">
+      <div class="section-title"><span class="icon">📔</span>Daily Journal</div>
+
+      <!-- Mood tracker -->
+      <div class="glass-card" style="padding:20px">
+        <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px">How are you feeling today? 🌿</div>
+        <div class="mood-row" id="mood-selector">
+          <button class="mood-btn" onclick="setMood(1)" data-mood="1">😞</button>
+          <button class="mood-btn" onclick="setMood(2)" data-mood="2">😕</button>
+          <button class="mood-btn" onclick="setMood(3)" data-mood="3">😐</button>
+          <button class="mood-btn" onclick="setMood(4)" data-mood="4">😊</button>
+          <button class="mood-btn" onclick="setMood(5)" data-mood="5">🥰</button>
+        </div>
+      </div>
+
+      <!-- Journal entry -->
+      <div class="glass-card" style="padding:20px">
+        <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:12px">Today's thoughts 🍃</div>
+        <textarea class="journal-textarea" id="journal-text" placeholder="Write about your day, what you learned, how you feel..."></textarea>
+      </div>
+
+      <!-- Gratitude -->
+      <div class="glass-card" style="padding:20px">
+        <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:12px">Three things I'm grateful for 🌸</div>
+        <div class="gratitude-list" id="gratitude-list"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <input class="cozy-input" id="gratitude-input" placeholder="Add something you're grateful for..." style="flex:1"/>
+          <button class="btn-primary" onclick="addGratitude()" style="padding:9px 16px;font-size:13px">Add</button>
+        </div>
+      </div>
+
+      <!-- AI summary placeholder -->
+      <div class="glass-card" style="padding:20px" id="ai-summary-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:24px">🌿</span>
+          <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary)">Forest Spirit's reflection</div>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);font-family:var(--font-display)" id="ai-summary-text">
+          Write in your journal and ask the Forest Spirit to reflect on your day ✨
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-primary" onclick="saveJournal()">🌱 Save entry</button>
+        <button class="btn-secondary" onclick="summarizeJournal()">✨ Ask Forest Spirit</button>
+      </div>
+    </section>
+
+    <!-- SHOP PAGE -->
+    <section class="page" id="page-shop">
+      <div class="section-head">
+        <div class="section-title"><span class="icon">🛒</span>Forest Shop</div>
+        <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-weight:700;color:var(--warm-brown)">
+          🪙 <span id="shop-coins">0</span> coins
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--text-muted);font-family:var(--font-display);margin-bottom:4px">
+        Earn coins by completing tasks and habits. Decorate your forest! 🌿
+      </div>
+      <div class="shop-grid" id="shop-grid"></div>
+    </section>
+
+    <!-- STATS PAGE -->
+    <section class="page" id="page-stats">
+      <div class="section-title"><span class="icon">📊</span>Your Stats</div>
+      <div class="stats-row" id="stats-grid"></div>
+
+      <div class="section-title" style="margin-top:4px"><span class="icon">🌲</span>Forest Growth</div>
+      <div class="glass-card" style="padding:20px">
+        <div id="growth-timeline" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+
+      <div class="section-title" style="margin-top:4px"><span class="icon">🏆</span>Achievements</div>
+      <div id="achievements-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    </section>
+
+    <!-- SETTINGS PAGE -->
+    <section class="page" id="page-settings">
+      <div class="section-title"><span class="icon">⚙️</span>Settings</div>
+
+      <div class="settings-section">
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Your name</div>
+            <div class="settings-sub">Shown in greetings</div>
+          </div>
+          <input class="cozy-input" id="settings-name" style="width:180px;text-align:right" placeholder="Forest Friend"/>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Dark mode</div>
+            <div class="settings-sub">Switch to night forest</div>
+          </div>
+          <div class="toggle-btn" id="dark-toggle" onclick="toggleDark()"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Sound effects</div>
+            <div class="settings-sub">Leaves, birds, rewards</div>
+          </div>
+          <div class="toggle-btn on" id="sound-toggle" onclick="toggleSetting('sound')"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Animations</div>
+            <div class="settings-sub">Forest creatures and effects</div>
+          </div>
+          <div class="toggle-btn on" id="anim-toggle" onclick="toggleSetting('anim')"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Rain mode</div>
+            <div class="settings-sub">Gentle rain in forest</div>
+          </div>
+          <div class="toggle-btn" id="rain-toggle" onclick="toggleSetting('rain')"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:12px">
+          <div>
+            <div class="settings-label">Backup your forest</div>
+            <div class="settings-sub">Save a copy you can restore later or move to another device</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-secondary" onclick="exportData()">⬇️ Export backup</button>
+            <button class="btn-secondary" onclick="document.getElementById('import-file').click()">⬆️ Import backup</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
+          </div>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:12px">
+          <div class="settings-label">Reset forest data</div>
+          <button class="btn-secondary" onclick="resetData()" style="color:var(--terracotta);border-color:var(--terracotta)">🗑️ Clear all data</button>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- end main -->
+</div><!-- end app -->
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <div class="mobile-nav-item active" onclick="showPage('home')" id="mnav-home"><span class="m-icon">🏡</span>Home</div>
+    <div class="mobile-nav-item" onclick="showPage('tasks')" id="mnav-tasks"><span class="m-icon">✅</span>Tasks</div>
+    <div class="mobile-nav-item" onclick="showPage('habits')" id="mnav-habits"><span class="m-icon">🌸</span>Habits</div>
+    <div class="mobile-nav-item" onclick="showPage('pomodoro')" id="mnav-pomodoro"><span class="m-icon">🍅</span>Focus</div>
+    <div class="mobile-nav-item" onclick="showPage('forest')" id="mnav-forest"><span class="m-icon">🌲</span>Forest</div>
+  </div>
+</nav>
+
+<!-- FOREST SPIRIT BUTTON -->
+<button class="spirit-btn" onclick="toggleSpirit()" title="Forest Spirit">🌿</button>
+<div class="spirit-chat" id="spirit-chat">
+  <div class="spirit-header">
+    <span class="spirit-avatar">🌿</span>
+    <div>
+      <div class="spirit-title">Forest Spirit</div>
+      <div class="spirit-sub">Your magical companion</div>
+    </div>
+    <button onclick="toggleSpirit()" style="margin-left:auto;color:var(--text-muted);font-size:18px">✕</button>
+  </div>
+  <div class="spirit-messages" id="spirit-messages">
+    <div class="spirit-msg from-spirit">
+      Hello, dear friend! 🌿 I'm your Forest Spirit. Complete tasks and habits to grow our magical forest together. What can I help you with today?
+    </div>
+  </div>
+  <div class="spirit-input-row">
+    <input class="spirit-input" id="spirit-input" placeholder="Ask the spirit..." onkeydown="if(event.key==='Enter')sendSpiritMsg()"/>
+    <button class="spirit-send" onclick="sendSpiritMsg()">➤</button>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toast-wrap"></div>
+<!-- SPARKLE LAYER -->
+<div class="sparkle-container" id="sparkle-container"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   COZY FOREST — Full App Logic
+   ═══════════════════════════════════════════════════════ */
+
+// ── STATE ──────────────────────────────────────────────
+const DEFAULT_STATE = {
+  user: { name: 'Forest Friend', xp: 0, coins: 50, level: 1, streak: 1 },
+  tasks: [],
+  habits: [
+    { id: 'h1', name: 'Study', icon: '📚', streak: 0, completions: [] },
+    { id: 'h2', name: 'Workout', icon: '💪', streak: 0, completions: [] },
+    { id: 'h3', name: 'Read', icon: '📖', streak: 0, completions: [] },
+    { id: 'h4', name: 'Drink Water', icon: '💧', streak: 0, completions: [] },
+    { id: 'h5', name: 'Journal', icon: '📔', streak: 0, completions: [] },
+    { id: 'h6', name: 'Meditate', icon: '🧘', streak: 0, completions: [] },
+  ],
+  forest: {
+    items: [],
+    placedDecorations: []
+  },
+  journal: { mood: 0, text: '', gratitude: [], aiSummary: '' },
+  shop: { owned: [] },
+  stats: { tasksCompleted: 0, habitsCompleted: 0, pomodoroSessions: 0, focusMinutes: 0 },
+  settings: { dark: false, sound: true, anim: true, rain: false },
+  pomodoro: { sessions: 0, todaySessions: 0, todayMinutes: 0 }
+};
+
+let S = loadState();
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('cozy-forest-v1');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+function saveState() {
+  localStorage.setItem('cozy-forest-v1', JSON.stringify(S));
+}
+
+// ── LEVEL SYSTEM ────────────────────────────────────────
+const XP_PER_LEVEL = [0, 100, 250, 450, 700, 1000, 1350, 1750, 2200, 2700, 3300];
+const LEVELS = [
+  { level:1, name:'Meadow Sprout', icon:'🌱', desc:'Your forest is just beginning...', unlock:'Grass' },
+  { level:2, name:'Sapling Grove', icon:'🌿', desc:'Little trees are taking root', unlock:'Small Trees' },
+  { level:3, name:'Wildflower Field', icon:'🌼', desc:'Flowers are beginning to bloom', unlock:'Flowers' },
+  { level:4, name:'Riverside Meadow', icon:'💧', desc:'A gentle river flows through', unlock:'River' },
+  { level:5, name:'Bridge Crossing', icon:'🌉', desc:'A mossy bridge spans the stream', unlock:'Bridge' },
+  { level:6, name:'Mushroom Hollow', icon:'🍄', desc:'Mushrooms dot the forest floor', unlock:'Mushrooms' },
+  { level:7, name:'Rabbit Warren', icon:'🐰', desc:'Bunnies have found your forest', unlock:'Rabbits' },
+  { level:8, name:'Fox Clearing', icon:'🦊', desc:'A curious fox wanders nearby', unlock:'Fox' },
+  { level:9, name:'Deer Glade', icon:'🦌', desc:'Majestic deer roam your forest', unlock:'Deer' },
+  { level:10, name:'Enchanted Forest', icon:'✨', desc:'A magical glowing tree blooms!', unlock:'Magical Tree' },
+];
+
+function calcLevel(xp) {
+  let level = 1;
+  for(let i = 1; i < XP_PER_LEVEL.length; i++) {
+    if(xp >= XP_PER_LEVEL[i]) level = i + 1; else break;
+  }
+  return Math.min(level, 10);
+}
+function xpForLevel(level) { return XP_PER_LEVEL[Math.min(level - 1, XP_PER_LEVEL.length-1)]; }
+function xpForNextLevel(level) { return XP_PER_LEVEL[Math.min(level, XP_PER_LEVEL.length-1)]; }
+
+function awardXP(amount, label) {
+  const oldLevel = S.user.level;
+  S.user.xp += amount;
+  S.user.coins += Math.floor(amount / 5);
+  S.user.level = calcLevel(S.user.xp);
+  saveState();
+  updateUI();
+  floatText(`+${amount} XP ✨`, '#4a7c59');
+  if(S.user.level > oldLevel) {
+    const lvl = LEVELS[S.user.level - 1];
+    showToast(`🎉 Level up! ${lvl.icon} ${lvl.name} unlocked!`, 'level');
+    addForestItemForLevel(S.user.level);
+  }
+}
+
+function xpProgress() {
+  const cur = xpForLevel(S.user.level);
+  const nxt = xpForNextLevel(S.user.level);
+  if(nxt <= cur) return 100;
+  return Math.min(100, ((S.user.xp - cur) / (nxt - cur)) * 100);
+}
+
+// ── NAVIGATION ──────────────────────────────────────────
+let currentPage = 'home';
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const ni = document.getElementById('nav-' + name);
+  if(ni) ni.classList.add('active');
+  const mni = document.getElementById('mnav-' + name);
+  if(mni) mni.classList.add('active');
+  currentPage = name;
+  localStorage.setItem('cozy-forest-last-page', name); // remember where the user was
+  renderPage(name);
+}
+function renderPage(name) {
+  if(name === 'home') renderHome();
+  if(name === 'tasks') renderTasks();
+  if(name === 'habits') renderHabits();
+  if(name === 'forest') renderForest();
+  if(name === 'stats') renderStats();
+  if(name === 'shop') renderShop();
+  if(name === 'journal') renderJournal();
+  if(name === 'pomodoro') renderPomodoro();
+  if(name === 'settings') renderSettings();
+}
+
+// ── UI UPDATE ───────────────────────────────────────────
+function updateUI() {
+  const { user } = S;
+  setText('hero-level', user.level);
+  setText('hero-xp', user.xp);
+  setText('hero-streak', user.streak);
+  setText('hero-coins', user.coins);
+  setText('sidebar-name', user.name || 'Forest Friend');
+  setText('sidebar-level', `Level ${user.level} · ${user.xp} XP`);
+  setText('shop-coins', user.coins);
+  const pct = xpProgress();
+  setStyle('home-xp-bar', 'width', pct + '%');
+  setStyle('forest-xp-bar', 'width', pct + '%');
+  setText('home-xp-label', `${user.xp} / ${xpForNextLevel(user.level)} XP`);
+  const lvlData = LEVELS[user.level - 1];
+  setText('forest-level-name', lvlData.name);
+  setText('forest-level-desc', lvlData.desc);
+  setText('forest-level-icon', lvlData.icon);
+  setText('forest-xp-label', `Level ${user.level}`);
+}
+function setText(id, val) { const el = document.getElementById(id); if(el) el.textContent = val; }
+function setStyle(id, prop, val) { const el = document.getElementById(id); if(el) el.style[prop] = val; }
+
+// ── HOME ────────────────────────────────────────────────
+function renderHome() {
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  setText('hero-date', `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`);
+  const h = now.getHours();
+  const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const name = S.user.name || 'Friend';
+  setText('hero-greeting', `${greet}, ${name}! 🌿`);
+  updateUI();
+  renderHomeScene();
+  renderHomeTasks();
+  renderHomeHabits();
+}
+
+function renderHomeScene() {
+  const scene = document.getElementById('home-scene');
+  if(!scene) return;
+  scene.innerHTML = '';
+  // Clouds
+  const clouds = [[60,30,80,30],[180,20,100,25],[320,40,70,20],[440,25,90,28]];
+  clouds.forEach(([x,y,w,h], i) => {
+    const c = document.createElement('div');
+    c.className = 'cloud';
+    c.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;animation:cloud-drift ${14+i*3}s ease-in-out infinite alternate;opacity:0.85`;
+    scene.appendChild(c);
+  });
+  // Trees based on level
+  const treeCount = Math.min(S.user.level * 2 + 1, 14);
+  const treeEmojis = ['🌱','🌿','🌲','🌳','🎄'];
+  for(let i = 0; i < treeCount; i++) {
+    const t = document.createElement('div');
+    t.className = 'forest-item tree-animated';
+    const emojiIdx = Math.min(Math.floor(i / 3), treeEmojis.length - 1);
+    const size = 22 + Math.random() * 20;
+    const xPos = 5 + (i / treeCount) * 88 + (Math.random() * 5 - 2.5);
+    const yPos = 52 + Math.random() * 20;
+    const delay = Math.random() * 4;
+    t.style.cssText = `position:absolute;left:${xPos}%;top:${yPos}%;font-size:${size}px;animation-duration:${3+Math.random()*2}s;animation-delay:-${delay}s;transform-origin:bottom center;`;
+    t.textContent = treeEmojis[emojiIdx];
+    scene.appendChild(t);
+  }
+  // Flowers (from habits)
+  const flowerCount = Math.min(S.stats.habitsCompleted, 10);
+  const flowers = ['🌸','🌺','🌼','🌻','💐'];
+  for(let i = 0; i < flowerCount; i++) {
+    const f = document.createElement('div');
+    f.className = 'forest-item';
+    f.style.cssText = `position:absolute;left:${8+i*8}%;top:${68+Math.random()*15}%;font-size:16px;`;
+    f.textContent = flowers[i % flowers.length];
+    scene.appendChild(f);
+  }
+  // Leaves
+  if(S.settings.anim) {
+    const leafEmojis = ['🍃','🍂','🍁'];
+    for(let i = 0; i < 8; i++) {
+      const l = document.createElement('div');
+      l.className = 'leaf';
+      l.style.cssText = `left:${Math.random()*95}%;animation-duration:${5+Math.random()*6}s;animation-delay:-${Math.random()*8}s;`;
+      l.textContent = leafEmojis[Math.floor(Math.random()*leafEmojis.length)];
+      scene.appendChild(l);
+    }
+  }
+  // Rain
+  if(S.settings.rain) {
+    for(let i = 0; i < 30; i++) {
+      const r = document.createElement('div');
+      r.className = 'raindrop';
+      r.style.cssText = `left:${Math.random()*100}%;height:${10+Math.random()*15}px;animation-duration:${0.6+Math.random()*0.5}s;animation-delay:-${Math.random()*1}s;`;
+      scene.appendChild(r);
+    }
+  }
+  // Night fireflies
+  const hour = new Date().getHours();
+  if((hour >= 20 || hour <= 6) && S.settings.anim) {
+    for(let i = 0; i < 12; i++) {
+      const ff = document.createElement('div');
+      ff.className = 'firefly';
+      ff.style.cssText = `left:${10+Math.random()*80}%;top:${40+Math.random()*45}%;animation-duration:${1.5+Math.random()*2}s;animation-delay:-${Math.random()*3}s;`;
+      scene.appendChild(ff);
+    }
+  }
+  // Fox (level 8+)
+  if(S.user.level >= 8 && S.settings.anim) {
+    setTimeout(() => {
+      const fox = document.createElement('div');
+      fox.className = 'fox';
+      fox.textContent = '🦊';
+      scene.appendChild(fox);
+      setTimeout(() => fox.remove(), 12000);
+    }, 3000);
+  }
+  // Occasional birds
+  if(S.settings.anim) launchBird(scene);
+}
+
+function launchBird(container) {
+  const delay = 6000 + Math.random() * 10000;
+  setTimeout(() => {
+    const bird = document.createElement('div');
+    bird.className = 'bird';
+    bird.textContent = '🐦';
+    bird.style.cssText = `top:${10+Math.random()*30}%;`;
+    container.appendChild(bird);
+    setTimeout(() => bird.remove(), 5000);
+    if(container.isConnected) launchBird(container);
+  }, delay);
+}
+
+function renderHomeTasks() {
+  const list = document.getElementById('home-tasks-list');
+  if(!list) return;
+  const today = new Date().toDateString();
+  const todayTasks = S.tasks.filter(t => !t.completed || t.completedDate === today).slice(0, 4);
+  list.innerHTML = todayTasks.length ? '' : '<div style="padding:20px;text-align:center;color:var(--text-muted);font-family:var(--font-display)">No tasks yet — plant your first one! 🌱</div>';
+  todayTasks.forEach(task => list.appendChild(buildTaskCard(task)));
+}
+
+function renderHomeHabits() {
+  const list = document.getElementById('home-habits-list');
+  if(!list) return;
+  list.innerHTML = '';
+  S.habits.slice(0,6).forEach(h => list.appendChild(buildHabitCard(h)));
+}
+
+// ── TASKS ────────────────────────────────────────────────
+let showAddTask = false;
+let taskFilter = localStorage.getItem('cozy-forest-task-filter') || 'all';
+
+function toggleAddTask() {
+  showAddTask = !showAddTask;
+  document.getElementById('add-task-form').style.display = showAddTask ? 'flex' : 'none';
+  if(showAddTask) document.getElementById('task-input').focus();
+}
+
+function addTask() {
+  const title = document.getElementById('task-input').value.trim();
+  if(!title) return;
+  const task = {
+    id: 'task_' + Date.now(),
+    title,
+    category: document.getElementById('task-category').value,
+    priority: document.getElementById('task-priority').value,
+    due: document.getElementById('task-due').value,
+    completed: false,
+    createdAt: Date.now()
+  };
+  S.tasks.unshift(task);
+  saveState();
+  document.getElementById('task-input').value = '';
+  document.getElementById('task-due').value = '';
+  toggleAddTask();
+  renderTasks();
+  showToast('🌱 Task planted! Complete it to grow a tree.');
+}
+
+function filterTasks(filter) {
+  taskFilter = filter;
+  localStorage.setItem('cozy-forest-task-filter', filter);
+  document.querySelectorAll('[data-filter]').forEach(b => {
+    b.style.background = '';
+    b.style.borderColor = '';
+    b.style.color = '';
+    b.classList.remove('current');
+  });
+  const btn = document.querySelector(`[data-filter="${filter}"]`);
+  if(btn) { btn.style.background='rgba(74,124,89,.15)'; btn.style.borderColor='var(--forest-green)'; btn.style.color='var(--forest-green)'; }
+  renderTasks();
+}
+
+function getFilteredTasks() {
+  return S.tasks.filter(t => {
+    if(taskFilter === 'active') return !t.completed;
+    if(taskFilter === 'done') return t.completed;
+    if(['work','study','health','creative','personal'].includes(taskFilter)) return t.category === taskFilter;
+    return true;
+  });
+}
+
+function renderTasks() {
+  const list = document.getElementById('tasks-list');
+  if(!list) return;
+  const tasks = getFilteredTasks();
+  list.innerHTML = tasks.length ? '' : '<div style="padding:24px;text-align:center;color:var(--text-muted);font-family:var(--font-display)">No tasks here — add one above! 🌱</div>';
+  tasks.forEach(t => list.appendChild(buildTaskCard(t)));
+}
+
+function buildTaskCard(task) {
+  const div = document.createElement('div');
+  div.className = 'task-card' + (task.completed ? ' done' : '');
+  div.id = 'task-' + task.id;
+  const catIcons = {work:'💼',study:'📚',health:'💪',creative:'🎨',personal:'🌿'};
+  const priMap = {high:'priority-high',med:'priority-med',low:'priority-low'};
+  const priLabel = {high:'🔥 High',med:'🌟 Medium',low:'🌿 Low'};
+  div.innerHTML = `
+    <div class="task-check ${task.completed?'checked':''}" onclick="completeTask('${task.id}')">
+      ${task.completed ? '✓' : ''}
+    </div>
+    <div class="task-content">
+      <div class="task-title">${escHtml(task.title)}</div>
+      <div class="task-meta">
+        <span class="task-tag ${priMap[task.priority]||'priority-low'}">${priLabel[task.priority]||'🌿 Low'}</span>
+        <span class="task-tag category-tag">${catIcons[task.category]||'🌿'} ${task.category||'Personal'}</span>
+        ${task.due ? `<span class="task-tag" style="background:rgba(122,184,212,.15);color:var(--sky-blue)">📅 ${task.due}</span>` : ''}
+      </div>
+    </div>
+    <div class="task-actions">
+      ${!task.completed ? `<button class="icon-btn" onclick="deleteTask('${task.id}')" title="Delete">🗑️</button>` : ''}
+    </div>`;
+  return div;
+}
+
+function completeTask(id) {
+  const task = S.tasks.find(t => t.id === id);
+  if(!task || task.completed) return;
+  task.completed = true;
+  task.completedDate = new Date().toDateString();
+  S.stats.tasksCompleted++;
+  saveState();
+  renderTasks();
+  if(currentPage === 'home') renderHomeTasks();
+  // Sparkle effect
+  const el = document.getElementById('task-' + id);
+  if(el) sparkleEffect(el);
+  // XP reward
+  const xpMap = {high: 60, med: 40, low: 25};
+  const xp = xpMap[task.priority] || 30;
+  awardXP(xp, task.title);
+  // Grow a tree in forest
+  addTreeToForest(task.category);
+  showToast(`🌳 Tree grown! +${xp} XP earned`, 'reward');
+  S.user.streak = Math.max(1, S.user.streak);
+}
+
+function deleteTask(id) {
+  S.tasks = S.tasks.filter(t => t.id !== id);
+  saveState();
+  renderTasks();
+}
+
+// ── HABITS ──────────────────────────────────────────────
+function renderHabits() {
+  const list = document.getElementById('habits-list');
+  if(!list) return;
+  list.innerHTML = '';
+  S.habits.forEach(h => list.appendChild(buildHabitCard(h)));
+  renderHabitCalendar();
+}
+
+function buildHabitCard(habit) {
+  const today = new Date().toDateString();
+  const doneToday = habit.completions.includes(today);
+  const div = document.createElement('div');
+  div.className = 'habit-card' + (doneToday ? ' done-today' : '');
+  div.onclick = () => toggleHabit(habit.id);
+  // Last 7 days dots
+  const dots = [];
+  for(let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    dots.push(habit.completions.includes(d.toDateString()));
+  }
+  div.innerHTML = `
+    <div class="habit-check-overlay">✅</div>
+    <div class="habit-icon">${habit.icon}</div>
+    <div class="habit-name">${escHtml(habit.name)}</div>
+    <div class="habit-streak">🔥 ${habit.streak} day streak</div>
+    <div class="habit-dots">
+      ${dots.map(f => `<div class="habit-dot${f?' filled':''}"></div>`).join('')}
+    </div>`;
+  return div;
+}
+
+function toggleHabit(id) {
+  const habit = S.habits.find(h => h.id === id);
+  if(!habit) return;
+  const today = new Date().toDateString();
+  if(habit.completions.includes(today)) return; // already done
+  habit.completions.push(today);
+  // Calculate streak
+  let streak = 0;
+  for(let i = 0; i <= 365; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    if(habit.completions.includes(d.toDateString())) streak++;
+    else break;
+  }
+  habit.streak = streak;
+  S.stats.habitsCompleted++;
+  saveState();
+  renderHabits();
+  if(currentPage === 'home') renderHomeHabits();
+  addFlowerToForest();
+  awardXP(20, habit.name);
+  showToast(`🌸 ${habit.name} done! A flower blooms in your forest.`);
+}
+
+function addCustomHabit() {
+  const name = prompt('New habit name:');
+  if(!name) return;
+  const icons = ['⭐','🎯','💡','🏆','🌙','☀️','🎵','🍎'];
+  S.habits.push({
+    id: 'h_' + Date.now(),
+    name: name.trim(),
+    icon: icons[Math.floor(Math.random() * icons.length)],
+    streak: 0, completions: []
+  });
+  saveState();
+  renderHabits();
+}
+
+function renderHabitCalendar() {
+  const cal = document.getElementById('habit-calendar');
+  if(!cal) return;
+  // Build last 30 days calendar for first habit
+  const now = new Date();
+  let html = '<div style="display:flex;flex-wrap:wrap;gap:4px;">';
+  for(let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const dateStr = d.toDateString();
+    const count = S.habits.filter(h => h.completions.includes(dateStr)).length;
+    const pct = count / Math.max(S.habits.length, 1);
+    const alpha = pct > 0 ? Math.max(0.2, pct) : 0;
+    const bg = count > 0 ? `rgba(74,124,89,${alpha})` : 'rgba(135,168,120,.1)';
+    html += `<div title="${dateStr}: ${count} habits" style="width:28px;height:28px;border-radius:6px;background:${bg};border:1px solid var(--border-light);display:flex;align-items:center;justify-content:center;font-size:11px;color:${count>0?'#fff':'var(--text-muted)'};">${count||''}</div>`;
+  }
+  html += '</div><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-display);margin-top:8px">Last 30 days — darker = more habits completed</div>';
+  cal.innerHTML = html;
+}
+
+// ── POMODORO ─────────────────────────────────────────────
+let timerInterval = null;
+let timerRunning = false;
+let timerMode = localStorage.getItem('cozy-forest-timer-mode') || 'work'; // work | break | long
+let timerSeconds = parseInt(localStorage.getItem('cozy-forest-timer-seconds')) || 25 * 60;
+let timerTotal = { work: 25*60, break: 5*60, long: 15*60 }[timerMode] || 25*60;
+let sessionCount = parseInt(localStorage.getItem('cozy-forest-session-count')) || 0;
+
+function saveTimerState() {
+  localStorage.setItem('cozy-forest-timer-mode', timerMode);
+  localStorage.setItem('cozy-forest-timer-seconds', timerSeconds);
+  localStorage.setItem('cozy-forest-session-count', sessionCount);
+}
+
+function setTimerMode(mode) {
+  if(timerRunning) return;
+  timerMode = mode;
+  const times = { work: 25 * 60, break: 5 * 60, long: 15 * 60 };
+  const labels = { work: 'Focus Time 🍅', break: 'Short Break 🌿', long: 'Long Break 🌙' };
+  timerSeconds = timerTotal = times[mode];
+  saveTimerState();
+  setText('timer-mode-label', labels[mode]);
+  updateTimerDisplay();
+  ['pom-work-btn','pom-break-btn','pom-long-btn'].forEach(id => {
+    document.getElementById(id)?.classList.remove('current');
+  });
+  const ids = { work: 'pom-work-btn', break: 'pom-break-btn', long: 'pom-long-btn' };
+  document.getElementById(ids[mode])?.classList.add('current');
+}
+
+function toggleTimer() {
+  if(timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timer-play-btn').textContent = '▶';
+    setText('pomodoro-ambient', 'Paused... the forest waits for you 🌿');
+  } else {
+    timerRunning = true;
+    document.getElementById('timer-play-btn').textContent = '⏸';
+    if(timerMode === 'work') setText('pomodoro-ambient', '🐦 Birds are singing as you focus...');
+    timerInterval = setInterval(timerTick, 1000);
+  }
+}
+
+function timerTick() {
+  timerSeconds--;
+  saveTimerState();
+  updateTimerDisplay();
+  if(timerSeconds <= 0) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timer-play-btn').textContent = '▶';
+    onTimerComplete();
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+  const s = (timerSeconds % 60).toString().padStart(2, '0');
+  setText('timer-display', `${m}:${s}`);
+  // Update ring
+  const circ = document.getElementById('timer-circle');
+  if(circ) {
+    const total = 603; // 2 * pi * 96
+    const offset = total - (total * timerSeconds / timerTotal);
+    circ.style.strokeDashoffset = offset;
+  }
+}
+
+function onTimerComplete() {
+  if(timerMode === 'work') {
+    sessionCount++;
+    S.pomodoro.sessions++;
+    S.pomodoro.todaySessions++;
+    S.pomodoro.todayMinutes += 25;
+    S.stats.pomodoroSessions++;
+    S.stats.focusMinutes += 25;
+    saveState();
+    awardXP(40, 'Pomodoro');
+    addSunlightToForest();
+    showToast('🌟 Focus session complete! Sunlight added to your forest!', 'reward');
+    setText('pomodoro-ambient', '🌳 Your forest grew stronger! Take a break.');
+    renderPomodoroDots();
+    updatePomStats();
+    // Auto-switch to break
+    setTimeout(() => setTimerMode(sessionCount % 4 === 0 ? 'long' : 'break'), 500);
+  } else {
+    showToast('🍅 Break over — ready to focus again?');
+    setText('pomodoro-ambient', 'Start a new session to keep growing 🌱');
+    setTimerMode('work');
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('timer-play-btn').textContent = '▶';
+  setTimerMode(timerMode);
+}
+function skipTimer() { clearInterval(timerInterval); timerRunning = false; document.getElementById('timer-play-btn').textContent = '▶'; onTimerComplete(); }
+
+function renderPomodoroDots() {
+  const dots = document.getElementById('session-dots');
+  if(!dots) return;
+  dots.innerHTML = '';
+  for(let i = 0; i < 4; i++) {
+    const d = document.createElement('div');
+    d.className = 'session-dot' + (i < (sessionCount % 4 + (sessionCount % 4 === 0 && sessionCount > 0 ? 4 : 0)) ? ' done' : '');
+    dots.appendChild(d);
+  }
+}
+
+function renderPomodoro() {
+  renderPomodoroDots();
+  updatePomStats();
+  updateTimerDisplay();
+}
+
+function updatePomStats() {
+  setText('pom-total', S.pomodoro.todaySessions || 0);
+  setText('pom-mins', S.pomodoro.todayMinutes || 0);
+  setText('pom-streak-stat', S.user.streak);
+}
+
+// ── FOREST ───────────────────────────────────────────────
+const FOREST_UNLOCKS = [
+  [], // level 1 - grass (always shown)
+  ['🌱','🌱','🌿'], // level 2
+  ['🌸','🌼','🌺'], // level 3
+  ['💧','🌊'], // level 4
+  ['🌉'], // level 5
+  ['🍄','🍄','🍄'], // level 6
+  ['🐰','🐰'], // level 7
+  ['🦊'], // level 8
+  ['🦌'], // level 9
+  ['✨','🌟','⭐'], // level 10
+];
+
+function addForestItemForLevel(level) {
+  const unlocks = FOREST_UNLOCKS[level - 1] || [];
+  unlocks.forEach(icon => {
+    S.forest.items.push({
+      id: 'fi_' + Date.now() + Math.random(),
+      icon, x: 10 + Math.random() * 75, y: 40 + Math.random() * 35, source: 'level'
+    });
+  });
+  saveState();
+}
+
+function addTreeToForest(category) {
+  const treeMap = {work:'🌳',study:'🌲',health:'🌿',creative:'🌸',personal:'🌱'};
+  S.forest.items.push({
+    id: 'fi_' + Date.now(), icon: treeMap[category] || '🌲',
+    x: 10 + Math.random() * 75, y: 45 + Math.random() * 30, source: 'task'
+  });
+  saveState();
+}
+
+function addFlowerToForest() {
+  const flowers = ['🌸','🌼','🌺','🌻','💐'];
+  S.forest.items.push({
+    id: 'fi_' + Date.now(), icon: flowers[Math.floor(Math.random() * flowers.length)],
+    x: 10 + Math.random() * 75, y: 55 + Math.random() * 25, source: 'habit'
+  });
+  saveState();
+}
+
+function addSunlightToForest() {
+  S.forest.items.push({
+    id: 'fi_' + Date.now(), icon: '☀️',
+    x: 5 + Math.random() * 85, y: 5 + Math.random() * 25, source: 'pomodoro'
+  });
+  saveState();
+}
+
+function placeItem(e) {
+  // Place owned shop items
+}
+
+function renderForest() {
+  const canvas = document.getElementById('forest-items');
+  if(!canvas) return;
+  canvas.innerHTML = '';
+  // Base forest elements based on level
+  const baseItems = [];
+  for(let i = 0; i < S.user.level; i++) {
+    const unlocks = FOREST_UNLOCKS[i] || [];
+    unlocks.forEach((icon, j) => {
+      baseItems.push({ icon, x: 10 + (i * 15 + j * 20) % 75, y: 40 + (j * 15) % 40 });
+    });
+  }
+  // User-grown items
+  const allItems = [...baseItems, ...S.forest.items.slice(-40)];
+  allItems.forEach((item, i) => {
+    const el = document.createElement('div');
+    el.style.cssText = `position:absolute;left:${item.x}%;top:${item.y}%;font-size:${20 + Math.random() * 12}px;transition:all .5s;animation:flower-bloom .5s ease;`;
+    el.textContent = item.icon;
+    canvas.appendChild(el);
+  });
+
+  // Level pills
+  const pills = document.getElementById('level-pills-forest');
+  if(pills) {
+    pills.innerHTML = '';
+    LEVELS.forEach(l => {
+      const p = document.createElement('div');
+      p.className = 'level-pill' + (S.user.level > l.level ? ' unlocked' : '') + (S.user.level === l.level ? ' current' : '');
+      p.textContent = `${l.icon} Lv${l.level}: ${l.unlock}`;
+      pills.appendChild(p);
+    });
+  }
+}
+
+// ── JOURNAL ──────────────────────────────────────────────
+function renderJournal() {
+  const today = new Date().toDateString();
+  const entry = S.journal[today] || { mood: 0, text: '', gratitude: [] };
+  S.journal[today] = entry;
+  if(entry.mood) {
+    document.querySelectorAll('.mood-btn').forEach(b => {
+      b.classList.toggle('selected', +b.dataset.mood === entry.mood);
+    });
+  }
+  const jt = document.getElementById('journal-text');
+  if(jt) {
+    jt.value = entry.text || '';
+    // Auto-save on every keystroke (debounced) so nothing is lost if the tab closes
+    jt.oninput = () => {
+      clearTimeout(jt._saveTimer);
+      jt._saveTimer = setTimeout(() => {
+        const d = new Date().toDateString();
+        if(!S.journal[d]) S.journal[d] = { mood:0, text:'', gratitude:[] };
+        S.journal[d].text = jt.value;
+        saveState();
+      }, 400);
+    };
+  }
+  renderGratitude(today);
+}
+
+function setMood(val) {
+  const today = new Date().toDateString();
+  if(!S.journal[today]) S.journal[today] = { mood:0, text:'', gratitude:[] };
+  S.journal[today].mood = val;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.toggle('selected', +b.dataset.mood === val));
+  saveState();
+}
+
+function addGratitude() {
+  const inp = document.getElementById('gratitude-input');
+  const val = inp.value.trim();
+  if(!val) return;
+  const today = new Date().toDateString();
+  if(!S.journal[today]) S.journal[today] = { mood:0, text:'', gratitude:[] };
+  if(S.journal[today].gratitude.length >= 5) { showToast('5 gratitudes is plenty! 🌸'); return; }
+  S.journal[today].gratitude.push(val);
+  inp.value = '';
+  saveState();
+  renderGratitude(today);
+}
+
+function renderGratitude(today) {
+  const list = document.getElementById('gratitude-list');
+  if(!list) return;
+  const entry = S.journal[today] || { gratitude: [] };
+  const icons = ['🌸','🌿','⭐','🍃','✨'];
+  list.innerHTML = entry.gratitude.map((g,i) => `
+    <div class="gratitude-item">
+      <span class="gratitude-dot">${icons[i % icons.length]}</span>
+      ${escHtml(g)}
+    </div>`).join('');
+}
+
+function saveJournal() {
+  const today = new Date().toDateString();
+  if(!S.journal[today]) S.journal[today] = { mood:0, text:'', gratitude:[] };
+  S.journal[today].text = document.getElementById('journal-text').value;
+  saveState();
+  awardXP(30, 'Journal');
+  showToast('📔 Journal saved! +30 XP earned 🌿');
+}
+
+function summarizeJournal() {
+  const today = new Date().toDateString();
+  const entry = S.journal[today] || {};
+  if(!entry.text && (!entry.gratitude || !entry.gratitude.length)) {
+    showToast('Write something first! 🌿'); return;
+  }
+  const summaries = [
+    `Your words today carry a gentle strength 🌿. The things you're grateful for — ${(entry.gratitude||[]).slice(0,2).join(', ')} — remind us that small joys weave the forest's magic. Keep tending to your soul as you tend to your goals.`,
+    `Today's reflection shows a mindful heart 🍃. Your forest grows not just from tasks, but from moments like these — when you pause, breathe, and give thanks for the ordinary beautiful things.`,
+    `The Forest Spirit sees your efforts 🌸. Every word written here becomes a seed. Some days are hard, some are soft — all of them matter. Rest when you need to. The forest will still be here tomorrow.`,
+    `What a day of gentle growing 🌱. Your gratitude is like sunlight for the soul. The Forest Spirit is proud of you — not for what you accomplished, but for who you're becoming.`
+  ];
+  const summary = summaries[Math.floor(Math.random() * summaries.length)];
+  setText('ai-summary-text', summary);
+  showToast('🌿 Forest Spirit has reflected on your day ✨');
+}
+
+// ── SHOP ─────────────────────────────────────────────────
+const SHOP_ITEMS = [
+  { id:'lantern', name:'Lantern', icon:'🏮', cost:30, desc:'Warm glow' },
+  { id:'bench', name:'Bench', icon:'🪑', cost:25, desc:'A cozy seat' },
+  { id:'campfire', name:'Campfire', icon:'🔥', cost:40, desc:'Warm & cozy' },
+  { id:'windmill', name:'Windmill', icon:'🌀', cost:60, desc:'Spins peacefully' },
+  { id:'fairy', name:'Fairy Lights', icon:'✨', cost:35, desc:'Magical twinkles' },
+  { id:'mushrooms', name:'Mushrooms', icon:'🍄', cost:20, desc:'Little friends' },
+  { id:'beehive', name:'Beehive', icon:'🐝', cost:45, desc:'Busy bees' },
+  { id:'telescope', name:'Telescope', icon:'🔭', cost:55, desc:'Stargaze at night' },
+  { id:'hammock', name:'Hammock', icon:'🛖', cost:50, desc:'Swing & relax' },
+  { id:'fountain', name:'Fountain', icon:'⛲', cost:70, desc:'Gentle water' },
+  { id:'sunflowers', name:'Sunflowers', icon:'🌻', cost:15, desc:'Bright & sunny' },
+  { id:'rainbow', name:'Rainbow', icon:'🌈', cost:80, desc:'After the rain' },
+];
+
+function renderShop() {
+  setText('shop-coins', S.user.coins);
+  const grid = document.getElementById('shop-grid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  SHOP_ITEMS.forEach(item => {
+    const owned = S.shop.owned.includes(item.id);
+    const canAfford = S.user.coins >= item.cost;
+    const div = document.createElement('div');
+    div.className = 'shop-item' + (owned ? ' owned' : '');
+    div.onclick = () => buyItem(item);
+    div.innerHTML = `
+      <div class="shop-icon">${item.icon}</div>
+      <div class="shop-name">${item.name}</div>
+      <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-display)">${item.desc}</div>
+      ${owned
+        ? '<div class="shop-badge">Owned ✓</div>'
+        : `<div class="shop-cost" style="${canAfford?'':'opacity:.5'}">🪙 ${item.cost}</div>`}`;
+    grid.appendChild(div);
+  });
+}
+
+function buyItem(item) {
+  if(S.shop.owned.includes(item.id)) {
+    // Place in forest
+    S.forest.items.push({ id:'fi_'+Date.now(), icon:item.icon, x:15+Math.random()*65, y:40+Math.random()*35, source:'shop' });
+    saveState();
+    showToast(`${item.icon} ${item.name} placed in your forest!`);
+    return;
+  }
+  if(S.user.coins < item.cost) { showToast('Not enough coins! Complete more tasks 🪙'); return; }
+  S.user.coins -= item.cost;
+  S.shop.owned.push(item.id);
+  saveState();
+  renderShop();
+  updateUI();
+  showToast(`${item.icon} ${item.name} added to your forest! 🌿`);
+}
+
+// ── STATS ────────────────────────────────────────────────
+function renderStats() {
+  const grid = document.getElementById('stats-grid');
+  if(grid) {
+    const items = [
+      { icon:'✅', num:S.stats.tasksCompleted, label:'Tasks done' },
+      { icon:'🌸', num:S.stats.habitsCompleted, label:'Habits done' },
+      { icon:'🍅', num:S.stats.pomodoroSessions, label:'Focus sessions' },
+      { icon:'⏱️', num:S.stats.focusMinutes, label:'Focus minutes' },
+      { icon:'🔥', num:S.user.streak, label:'Day streak' },
+      { icon:'⭐', num:S.user.level, label:'Forest level' },
+      { icon:'✨', num:S.user.xp, label:'Total XP' },
+      { icon:'🪙', num:S.user.coins, label:'Coins earned' },
+    ];
+    grid.innerHTML = items.map(i => `
+      <div class="stat-tile">
+        <span class="s-icon">${i.icon}</span>
+        <span class="s-num">${i.num}</span>
+        <span class="s-label">${i.label}</span>
+      </div>`).join('');
+  }
+
+  // Growth timeline
+  const timeline = document.getElementById('growth-timeline');
+  if(timeline) {
+    timeline.innerHTML = '';
+    S.forest.items.slice(-20).forEach(item => {
+      const el = document.createElement('div');
+      el.style.cssText = 'font-size:28px;padding:4px;border-radius:8px;background:rgba(135,168,120,.1);border:1px solid var(--border-light);';
+      el.title = 'From ' + (item.source || 'task');
+      el.textContent = item.icon;
+      timeline.appendChild(el);
+    });
+    if(!S.forest.items.length) timeline.innerHTML = '<div style="color:var(--text-muted);font-family:var(--font-display);font-size:13px">Complete tasks to grow your forest! 🌱</div>';
+  }
+
+  // Achievements
+  renderAchievements();
+}
+
+const ACHIEVEMENTS = [
+  { id:'first_task', icon:'🌱', name:'First Seed', desc:'Complete your first task', check:() => S.stats.tasksCompleted >= 1 },
+  { id:'ten_tasks', icon:'🌳', name:'Tree Hugger', desc:'Complete 10 tasks', check:() => S.stats.tasksCompleted >= 10 },
+  { id:'habit_week', icon:'🔥', name:'Habit Loop', desc:'Complete a habit 7 days in a row', check:() => S.habits.some(h => h.streak >= 7) },
+  { id:'first_pom', icon:'🍅', name:'First Focus', desc:'Complete your first Pomodoro', check:() => S.stats.pomodoroSessions >= 1 },
+  { id:'level5', icon:'🌿', name:'Forest Keeper', desc:'Reach level 5', check:() => S.user.level >= 5 },
+  { id:'level10', icon:'✨', name:'Enchanted', desc:'Reach the magical level 10', check:() => S.user.level >= 10 },
+  { id:'journal3', icon:'📔', name:'Storyteller', desc:'Write 3 journal entries', check:() => Object.keys(S.journal).filter(k=>k!=='mood'&&k!=='text'&&k!=='gratitude'&&k!=='aiSummary'&&S.journal[k]?.text).length >= 3 },
+  { id:'coins100', icon:'🪙', name:'Coin Collector', desc:'Earn 100 coins total', check:() => (S.user.coins + (S.stats.tasksCompleted * 10)) >= 100 },
+];
+
+function renderAchievements() {
+  const list = document.getElementById('achievements-list');
+  if(!list) return;
+  list.innerHTML = '';
+  ACHIEVEMENTS.forEach(a => {
+    const unlocked = a.check();
+    const div = document.createElement('div');
+    div.className = 'task-card';
+    div.style.opacity = unlocked ? '1' : '0.45';
+    div.innerHTML = `
+      <div style="font-size:28px">${a.icon}</div>
+      <div class="task-content">
+        <div class="task-title">${a.name}</div>
+        <div class="task-meta"><span style="font-size:12px;color:var(--text-muted)">${a.desc}</span></div>
+      </div>
+      <div style="font-size:18px">${unlocked ? '✅' : '🔒'}</div>`;
+    list.appendChild(div);
+  });
+}
+
+// ── SETTINGS ─────────────────────────────────────────────
+function renderSettings() {
+  const ni = document.getElementById('settings-name');
+  if(ni) ni.value = S.user.name || '';
+  ni.onchange = (e) => { S.user.name = e.target.value; saveState(); updateUI(); };
+  const dt = document.getElementById('dark-toggle');
+  if(dt) dt.className = 'toggle-btn' + (S.settings.dark ? ' on' : '');
+}
+
+function toggleDark() {
+  S.settings.dark = !S.settings.dark;
+  document.documentElement.setAttribute('data-theme', S.settings.dark ? 'dark' : '');
+  saveState();
+  renderSettings();
+}
+
+function toggleSetting(key) {
+  S.settings[key] = !S.settings[key];
+  const map = { sound:'sound-toggle', anim:'anim-toggle', rain:'rain-toggle' };
+  const el = document.getElementById(map[key]);
+  if(el) el.className = 'toggle-btn' + (S.settings[key] ? ' on' : '');
+  saveState();
+  if(currentPage === 'home') renderHome();
+}
+
+function resetData() {
+  if(!confirm('Clear all Cozy Forest data? Your forest will start fresh 🌱')) return;
+  localStorage.removeItem('cozy-forest-v1');
+  S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  saveState();
+  updateUI();
+  showPage('home');
+  showToast('🌱 Fresh forest! Time to grow again.');
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `cozy-forest-backup-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('⬇️ Backup downloaded! Keep it safe 🌿');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!data.user || !data.tasks) throw new Error('Invalid file');
+      if(!confirm('This will replace your current forest with the backup. Continue?')) return;
+      S = data;
+      saveState();
+      updateUI();
+      showPage('home');
+      showToast('🌳 Forest restored from backup!');
+    } catch(err) {
+      showToast('⚠️ Could not read that file — is it a Cozy Forest backup?');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── AI SPIRIT ────────────────────────────────────────────
+let spiritOpen = false;
+function toggleSpirit() {
+  spiritOpen = !spiritOpen;
+  const chat = document.getElementById('spirit-chat');
+  chat.className = 'spirit-chat' + (spiritOpen ? ' open' : '');
+}
+
+const SPIRIT_RESPONSES = {
+  help: `I can help you break down big goals into tiny seeds 🌱, suggest what to focus on today, celebrate your wins, or just chat. What would you like? 🌿`,
+  tasks: `Looking at your forest, you have ${() => S.tasks.filter(t=>!t.completed).length} tasks growing. Your highest priority ones deserve the most sunlight today ☀️. Want me to help you pick the most important one?`,
+  habits: `Consistency is the rain that grows the tallest trees 🌧️. Even on hard days, doing even one small habit keeps the roots alive. Which habit do you want to strengthen most?`,
+  focus: `The forest grows quietest when you go deepest 🍅. Try a 25-minute Pomodoro session — no distractions, just you and your work. The birds will sing while you focus.`,
+  default: [
+    `Every tree in your forest was once just a tiny seed — just like the task you're about to start 🌱. You've got this.`,
+    `The forest grew by ${() => S.stats.tasksCompleted} completed tasks and ${() => S.stats.habitsCompleted} habits. Look how far you've come! ✨`,
+    `Rest is part of growth too 🍃. The forest doesn't grow in a hurry — it grows with patience and care. Be kind to yourself today.`,
+    `Your streak of ${() => S.user.streak} days is like deep roots 🌳. Keep going — the canopy is getting thicker!`,
+    `Break your big goal into 3 small steps, then plant the first one as a task. Small actions, taken daily, build enchanted forests 🌿.`,
+    `I see you're at Level ${() => S.user.level}! ${LEVELS[Math.min(S.user.level,9)-1].desc} Keep going — ${LEVELS[Math.min(S.user.level,9)].unlock} awaits! ✨`,
+  ]
+};
+
+function sendSpiritMsg() {
+  const inp = document.getElementById('spirit-input');
+  const msg = inp.value.trim();
+  if(!msg) return;
+  inp.value = '';
+  addSpiritMsg(msg, 'user');
+  setTimeout(() => {
+    const lower = msg.toLowerCase();
+    let resp;
+    if(lower.includes('task') || lower.includes('todo')) resp = typeof SPIRIT_RESPONSES.tasks === 'function' ? SPIRIT_RESPONSES.tasks() : SPIRIT_RESPONSES.tasks;
+    else if(lower.includes('habit')) resp = SPIRIT_RESPONSES.habits;
+    else if(lower.includes('focus') || lower.includes('pomodoro')) resp = SPIRIT_RESPONSES.focus;
+    else if(lower.includes('help') || lower.includes('hi') || lower.includes('hello')) resp = SPIRIT_RESPONSES.help;
+    else {
+      const arr = SPIRIT_RESPONSES.default;
+      const r = arr[Math.floor(Math.random() * arr.length)];
+      resp = typeof r === 'function' ? r() : r;
+    }
+    // Fill in dynamic values
+    resp = resp.replace(/\$\{[^}]+\}/g, '');
+    addSpiritMsg(resp, 'spirit');
+  }, 600);
+}
+
+function addSpiritMsg(text, from) {
+  const msgs = document.getElementById('spirit-messages');
+  if(!msgs) return;
+  const div = document.createElement('div');
+  div.className = 'spirit-msg from-' + from;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── TOAST & EFFECTS ──────────────────────────────────────
+function showToast(msg, type = '') {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; t.style.transition = 'all .3s';
+    setTimeout(() => t.remove(), 300);
+  }, 3200);
+}
+
+function sparkleEffect(el) {
+  if(!S.settings.anim) return;
+  const rect = el.getBoundingClientRect();
+  const container = document.getElementById('sparkle-container');
+  const sparks = ['✨','⭐','🌟','💫','🌸'];
+  for(let i = 0; i < 8; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle-particle';
+    s.textContent = sparks[Math.floor(Math.random() * sparks.length)];
+    s.style.left = (rect.left + Math.random() * rect.width) + 'px';
+    s.style.top = (rect.top + Math.random() * rect.height) + 'px';
+    s.style.animationDelay = (Math.random() * 0.3) + 's';
+    container.appendChild(s);
+    setTimeout(() => s.remove(), 800);
+  }
+}
+
+function floatText(text, color) {
+  if(!S.settings.anim) return;
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;bottom:120px;right:30px;font-family:var(--font-display);font-size:18px;font-weight:800;color:${color};pointer-events:none;z-index:1000;animation:float-up 1.2s ease forwards;`;
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── INIT ──────────────────────────────────────────────────
+function init() {
+  // Apply saved theme
+  if(S.settings.dark) document.documentElement.setAttribute('data-theme', 'dark');
+  // Ensure streak stays alive
+  S.user.streak = Math.max(S.user.streak || 1, 1);
+  // Seed forest items for existing level
+  if(S.forest.items.length === 0 && S.user.level > 1) {
+    for(let i = 1; i < S.user.level; i++) addForestItemForLevel(i+1);
+  }
+  saveState();
+  updateUI();
+  // Restore the page the user was last on, instead of always defaulting to Home
+  const lastPage = localStorage.getItem('cozy-forest-last-page') || 'home';
+  showPage(lastPage);
+  // Tick streak daily
+  const lastSeen = localStorage.getItem('cozy-last-seen');
+  const today = new Date().toDateString();
+  if(lastSeen && lastSeen !== today) {
+    const diff = Math.floor((new Date(today) - new Date(lastSeen)) / 86400000);
+    if(diff === 1) { S.user.streak++; saveState(); }
+    else if(diff > 1) { S.user.streak = 1; saveState(); }
+  }
+  localStorage.setItem('cozy-last-seen', today);
+}
+
+init();
+</script>
+</body>
+</html>
